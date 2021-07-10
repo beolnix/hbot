@@ -28,6 +28,7 @@ type Params struct {
 
 const BLAME = "иди нахуй"
 const STATUS_CMD = "/status"
+const HELP_CMD = "/help"
 
 func main() {
 	params := parseArgs()
@@ -57,13 +58,32 @@ func main() {
 		}
 
 		if isBlameMsg(update) {
+			login := update.Message.From.UserName
+			replyToLogin := update.Message.ReplyToMessage.From.UserName
+			if login == replyToLogin {
+				receivedLogin, receivedRate := updateReceived(update, params.statusFilePath, login2StatusMap)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+					fmt.Sprintf("%s, сам себя послал нахуй. Адекватность обновлена: %s",
+						receivedLogin, receivedRate))
+				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+				continue
+			}
 			receivedLogin, receivedRate := updateReceived(update, params.statusFilePath, login2StatusMap)
 			sentLogin, sentRate := updateSent(update, params.statusFilePath, login2StatusMap)
 			login2StatusMap = readStatusFromFile(params.statusFilePath)
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 				fmt.Sprintf("%s, послал нахуй %s. Адекватность обновлена: %s: %s; %s: %s",
-					sentLogin, receivedLogin, sentLogin, sentRate, receivedLogin, receivedRate))
+					sentLogin, receivedLogin, receivedLogin, receivedRate, sentLogin, sentRate))
+			msg.ReplyToMessageID = update.Message.MessageID
+			bot.Send(msg)
+			continue
+		}
+
+		if isHelpMsg(update) {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+				"бот измеряет адекватность беря в расчет сколько раз человек послал нахуй кого-то и сколько раз был послан сам. Единственная команда /status с помощью которой можно посмотреть свое текущее значение адекватности или кого-то еще если написать /status @username. Послание нахуй считается если сообщение помечено как \"ответ\" и содержит слова \"иди нахуй\". Одно сообщение влияет одновременно на показатели адекватности посылающего и посланного.")
 			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
 			continue
@@ -82,6 +102,10 @@ func isBlameMsg(update tgbotapi.Update) bool {
 
 func isStatusMsg(update tgbotapi.Update) bool {
 	return strings.HasPrefix(update.Message.Text, STATUS_CMD)
+}
+
+func isHelpMsg(update tgbotapi.Update) bool {
+	return strings.HasPrefix(update.Message.Text, HELP_CMD)
 }
 
 func processStatus(update tgbotapi.Update, login2StatusMap map[string]Status, bot *tgbotapi.BotAPI) {
