@@ -62,7 +62,7 @@ func main() {
 			login2StatusMap = readStatusFromFile(params.statusFilePath)
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-				fmt.Sprintf("%s, послал нахуй %s. Адекватность обновлена: %s:%s; %s:%s",
+				fmt.Sprintf("%s, послал нахуй %s. Адекватность обновлена: %s: %s; %s: %s",
 					sentLogin, receivedLogin, sentLogin, sentRate, receivedLogin, receivedRate))
 			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
@@ -150,8 +150,8 @@ func updateReceived(update tgbotapi.Update, filePath string, login2StatusMap map
 
 func prettyPrintStatus(status Status) string {
 	var rawResult = 100.0
-	var sent = 1.0
-	var received = 1.0
+	var sent = 0.1
+	var received = 0.1
 	if status.BlameStatus.Received != 0 {
 		received = float64(status.BlameStatus.Received)
 	}

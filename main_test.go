@@ -81,6 +81,15 @@ func TestRatio(t *testing.T) {
 					Received: 2,
 				},
 			},
+		}, {
+			name: "first",
+			status: Status{
+				Login: "negative",
+				BlameStatus: BlameStatus{
+					Sent:     1,
+					Received: 0,
+				},
+			},
 		}}
 
 	for _, tt := range tests {
