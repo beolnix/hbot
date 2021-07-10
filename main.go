@@ -97,7 +97,7 @@ func isReply(update tgbotapi.Update) bool {
 }
 
 func isBlameMsg(update tgbotapi.Update) bool {
-	return strings.Contains(update.Message.Text, BLAME) && isReply(update)
+	return strings.Contains(strings.ToLower(update.Message.Text), BLAME) && isReply(update)
 }
 
 func isStatusMsg(update tgbotapi.Update) bool {
