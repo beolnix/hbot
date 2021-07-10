@@ -26,7 +26,14 @@ type Params struct {
 	statusFilePath string
 }
 
-const BLAME = "иди нахуй"
+var BLAME = []string{
+	"иди нахуй", "иди на хуй", "инна", "идинахуй", "иннах", "иди нах", "идинах",
+	"нахуй иди", "на хуй иди", "нахуйиди", "нахиди",
+	"idi nahuj", "idinah", "idinahuj",
+	"nahuj idi", "nahidi", "nahujidi",
+	"пошел нахуй", "пошел нах",
+	"нах пошел", "нахпошел"}
+
 const STATUS_CMD = "/status"
 const HELP_CMD = "/help"
 
@@ -82,8 +89,7 @@ func main() {
 		}
 
 		if isHelpMsg(update) {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-				"Бот измеряет адекватность, беря в расчет сколько раз человек послал нахуй кого-то и сколько раз был послан сам. Единственная доступная команда - /status с помощью которой можно посмотреть свое текущее значение адекватности, или кого-то еще, если написать /status @username. Послание нахуй считается если сообщение помечено как \"ответ\" и содержит слова \"иди нахуй\". Одно сообщение влияет одновременно на показатели адекватности посылающего и посланного.")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Бот измеряет адекватность, беря в расчет сколько раз человек послал нахуй кого-то и сколько раз был послан сам. Единственная доступная команда - /status с помощью которой можно посмотреть свое текущее значение адекватности, или кого-то еще, если написать /status @username. Послание нахуй считается если сообщение помечено как \"ответ\" и содержит одно из %v. Одно сообщение влияет одновременно на показатели адекватности посылающего и посланного.", BLAME))
 			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
 			continue
@@ -97,7 +103,16 @@ func isReply(update tgbotapi.Update) bool {
 }
 
 func isBlameMsg(update tgbotapi.Update) bool {
-	return strings.Contains(strings.ToLower(update.Message.Text), BLAME) && isReply(update)
+	if !isReply(update) {
+		return false
+	}
+	for _, blameMsg := range BLAME {
+		if strings.Contains(strings.ToLower(update.Message.Text), blameMsg) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isStatusMsg(update tgbotapi.Update) bool {
