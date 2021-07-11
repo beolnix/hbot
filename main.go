@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -67,8 +68,8 @@ func main() {
 		}
 
 		if isBlameMsg(update) {
-			login := update.Message.From.UserName
-			replyToLogin := update.Message.ReplyToMessage.From.UserName
+			login := getLogin(update)
+			replyToLogin := getReplyToLogin(update)
 			if login == replyToLogin {
 				receivedLogin, receivedRate := updateReceived(update, params.statusFilePath, login2StatusMap)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID,
@@ -127,7 +128,8 @@ func isHelpMsg(update tgbotapi.Update) bool {
 }
 
 func processStatus(update tgbotapi.Update, login2StatusMap map[string]Status, bot *tgbotapi.BotAPI) {
-	login := update.Message.From.UserName
+	login := getLogin(update)
+
 	txt := strings.ReplaceAll(update.Message.Text, "/status", "")
 	txt = strings.TrimSpace(txt)
 	statusAbout := strings.ReplaceAll(txt, "@", "")
@@ -151,7 +153,7 @@ func processStatus(update tgbotapi.Update, login2StatusMap map[string]Status, bo
 }
 
 func updateSent(update tgbotapi.Update, filePath string, login2StatusMap map[string]Status) (string, string) {
-	login := update.Message.From.UserName
+	login := getLogin(update)
 
 	status, ok := login2StatusMap[login]
 	if ok {
@@ -170,8 +172,26 @@ func updateSent(update tgbotapi.Update, filePath string, login2StatusMap map[str
 	return login, prettyPrintStatus(status)
 }
 
-func updateReceived(update tgbotapi.Update, filePath string, login2StatusMap map[string]Status) (string, string) {
+func getReplyToLogin(update tgbotapi.Update) string {
 	replyToLogin := update.Message.ReplyToMessage.From.UserName
+	if len(replyToLogin) < 1 {
+		replyToLogin = update.Message.ReplyToMessage.From.FirstName + "_" + update.Message.ReplyToMessage.From.LastName +
+			"_" + strconv.Itoa(update.Message.ReplyToMessage.From.ID)
+	}
+	return replyToLogin
+}
+
+func getLogin(update tgbotapi.Update) string {
+	login := update.Message.From.UserName
+	if len(login) < 1 {
+		login = update.Message.From.FirstName + "_" + update.Message.From.LastName +
+			"_" + strconv.Itoa(update.Message.From.ID)
+	}
+	return login
+}
+
+func updateReceived(update tgbotapi.Update, filePath string, login2StatusMap map[string]Status) (string, string) {
+	replyToLogin := getReplyToLogin(update)
 
 	status, ok := login2StatusMap[replyToLogin]
 	if ok {
