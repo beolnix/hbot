@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -175,8 +174,10 @@ func updateSent(update tgbotapi.Update, filePath string, login2StatusMap map[str
 func getReplyToLogin(update tgbotapi.Update) string {
 	replyToLogin := update.Message.ReplyToMessage.From.UserName
 	if len(replyToLogin) < 1 {
-		replyToLogin = update.Message.ReplyToMessage.From.FirstName + "_" + update.Message.ReplyToMessage.From.LastName +
-			"_" + strconv.Itoa(update.Message.ReplyToMessage.From.ID)
+		replyToLogin = update.Message.ReplyToMessage.From.FirstName
+		if len(update.Message.ReplyToMessage.From.LastName) > 0 {
+			replyToLogin = replyToLogin + "_" + update.Message.ReplyToMessage.From.LastName
+		}
 	}
 	return replyToLogin
 }
@@ -184,8 +185,10 @@ func getReplyToLogin(update tgbotapi.Update) string {
 func getLogin(update tgbotapi.Update) string {
 	login := update.Message.From.UserName
 	if len(login) < 1 {
-		login = update.Message.From.FirstName + "_" + update.Message.From.LastName +
-			"_" + strconv.Itoa(update.Message.From.ID)
+		login = update.Message.From.FirstName
+		if len(update.Message.From.LastName) > 0 {
+			login = login + "_" + update.Message.From.LastName
+		}
 	}
 	return login
 }
